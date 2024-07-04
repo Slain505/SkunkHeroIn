@@ -24,7 +24,7 @@ export default class GameStart extends cc.Component {
 
     onTouchEnd() {
         const targetPlatformPosition = cc.v2(-cc.winSize.width / 2, this.platformStub.y);
-        const targetPlayerPosition = cc.v2(this.platformStub.width / 2 - this.playerStub.width / 1.3,
+        const targetPlayerPosition = cc.v2(this.platformStub.width / 2 - this.playerStub.width / 1.2,
             this.playerStub.y);
 
         const movePlatformStub = cc.moveTo(this.animationTime, targetPlatformPosition);
@@ -32,6 +32,8 @@ export default class GameStart extends cc.Component {
 
         this.platformStub.runAction(movePlatformStub);
         this.playerStub.runAction(movePlayerStub);
-        cc.director.loadScene("GameScene", () => {});
+        this.scheduleOnce(() => {
+            cc.director.loadScene('GameScene');
+        }, this.animationTime);
     }
 }
