@@ -16,6 +16,13 @@ export default class GameplayController extends cc.Component {
     rootNode: cc.Node = null;
 
     @property({
+        type: cc.Node,
+        displayName: 'Default Position',
+        tooltip: 'Default position where the player and platform would be moved to after a successful stick'
+    })
+    defaultPosition: cc.Node = null;
+    
+    @property({
         type: cc.Prefab,
         displayName: 'StickPrefab',
         tooltip: 'Stick prefab'
@@ -55,7 +62,7 @@ export default class GameplayController extends cc.Component {
     private oldStickNode: cc.Node = null;
     private stickNode: cc.Node = null;
     private playerNode: cc.Node = null;
-
+    private stickComponent: Stick = null;
     moveDistance: cc.Float;
     GameState = GameStates.Idle;
 
@@ -70,18 +77,45 @@ export default class GameplayController extends cc.Component {
         const initialPlatformX = -cc.winSize.width / 2;
         const initialPlayerX = initialPlatformX + this.platformPrefabWidth / 2 - this.playerPrefabWidth / 1.2;
 
-        this.platformNode = this.createPlatform(initialPlatformX, this.platformPrefabWidth);
+        this.platformNode = this.createPlatform(initialPlatformX, this.platformPrefabWidth, false);
         this.playerNode = this.createPlayer(initialPlayerX);
-        this.nextPlatformNode = this.createPlatform(this.platformNode.x + this.platformNode.width / 2 + 200, 0);
+        this.spawnNextPlatform();
     }
 
-    createPlatform(positionX: number, initialWidth: number = 0) {
+    calculateNextPlatformPosition(): number {
+        const minDistance = 200;
+        const maxDistance = cc.winSize.width - this.platformPrefabWidth;
+
+        let randomDistance = minDistance + Math.random() * (maxDistance - minDistance);
+        let targetX = this.defaultPosition.x + randomDistance;
+        
+        return targetX;
+    }
+
+    spawnNextPlatform() {
+        console.log("spawnNextPlatform");
+        const spawnX = cc.winSize.width;
+        const targetX = this.calculateNextPlatformPosition();
+
+        this.nextPlatformNode = this.createPlatform(spawnX, 0, true);
+        this.movePlatformOntoScreen(this.nextPlatformNode, targetX);
+    }
+
+    movePlatformOntoScreen(platformNode: cc.Node, targetX: number) {
+        console.log("movePlatformOntoScreen", platformNode, targetX);
+        cc.tween(platformNode)
+            .to(0.5, { x: targetX })
+            .start();
+    }
+
+    createPlatform(positionX: number, initialWidth: number = 0, bonusVisible: boolean = true) {
         console.log("createPlatform", positionX, initialWidth);
+        
         let platformInstance = cc.instantiate(this.platformPrefab);
         this.node.addChild(platformInstance);
         const platformComp = platformInstance.getComponent(Platform);
         if (platformComp) {
-            platformComp.initPlatform(positionX, initialWidth);
+            platformComp.initPlatform(positionX, initialWidth, bonusVisible);
         } else {
             console.error("Platform component is missing");
         }
@@ -90,6 +124,7 @@ export default class GameplayController extends cc.Component {
 
     createPlayer(positionX: number) {
         console.log("createPlayer");
+        
         let playerInstance = cc.instantiate(this.playerPrefab);
         this.node.addChild(playerInstance);
         playerInstance.setPosition(positionX, this.platformNode.y + this.platformNode.height / 2 + playerInstance.height / 2);
@@ -124,9 +159,9 @@ export default class GameplayController extends cc.Component {
         }
         this.GameState = GameStates.Touching;
         this.createStick();
-        const stickComp = this.stickNode.getComponent(Stick);
-        if (stickComp) {
-            stickComp.startStickGrowth();
+        this.stickComponent = this.stickNode.getComponent(Stick);
+        if (this.stickComponent) {
+            this.stickComponent.startStickGrowth();
         } else {
             console.error("Stick component is missing");
         }
@@ -137,12 +172,12 @@ export default class GameplayController extends cc.Component {
         if (this.GameState !== GameStates.Touching || !this.stickNode) {
             return;
         }
-        const stickComp = this.stickNode.getComponent(Stick);
-        if (stickComp) {
-            stickComp.stopStickGrowth();
-            stickComp.fallStick();
+        this.stickComponent = this.stickNode.getComponent(Stick);
+        if (this.stickComponent) {
+            this.stickComponent.stopStickGrowth();
+            this.stickComponent.stickFall();
             this.GameState = GameStates.End;
-            this.scheduleOnce(this.checkResult.bind(this), stickComp.angleTime);
+            this.scheduleOnce(this.checkResult.bind(this), this.stickComponent.angleTime);
         } else {
             console.error("Stick component is missing");
         }
@@ -156,9 +191,10 @@ export default class GameplayController extends cc.Component {
         
         const stickRightX = this.stickNode.x + this.stickNode.height;
         const nextPlatformComp = this.nextPlatformNode.getComponent(Platform);
-        
+
         if (nextPlatformComp && nextPlatformComp.isStickTouching(stickRightX)) {
             this.onStickTouchPlatform();
+            
         } else {
             this.onFailed();
         }
@@ -172,11 +208,14 @@ export default class GameplayController extends cc.Component {
         let moveTime = Math.abs(this.moveDistance / 500);
 
         const playerComp = this.playerNode.getComponent(Player);
+        const scoreController = cc.find('Canvas/UI/Score').getComponent('ScoreController');
+
         if (playerComp) {
             playerComp.runToPosition(cc.v3(nextPlatformEdge, this.playerNode.y), moveTime, () => {
                 this.scheduleOnce(() => {
                     this.resetPlatformsAndPlayer();
                     this.instantiateNextPlatform();
+                    scoreController.increaseScore();
                 });
             });
         } else {
@@ -187,14 +226,12 @@ export default class GameplayController extends cc.Component {
     resetPlatformsAndPlayer() {
         console.log("resetPlatformsAndPlayer");
 
-        //let targetPlatformX = -cc.winSize.width / 2;
-        //let targetPlayerX = targetPlatformX + this.nextPlatformNode.width / 3 - this.playerNode.width / 1.3;
         let moveAmount = -cc.winSize.width / 3;
         let moveTime = 0.1; // Adjust this value as needed
 
         // Move current platform to the left edge
         cc.tween(this.nextPlatformNode)
-            .to(moveTime, { x: moveAmount })
+            .to(moveTime, { x: moveAmount - this.nextPlatformNode.width / 2 + this.playerNode.width / 1.3})
             .start();
 
         // Move player to the left edge
@@ -207,6 +244,13 @@ export default class GameplayController extends cc.Component {
         // Switch references after moving
         this.platformNode = this.nextPlatformNode;
         
+        const platformComp = this.platformNode.getComponent(Platform);
+        if (platformComp) {
+            platformComp.setBonusPlatformVisibility(false);
+        } else {
+            console.error("Platform component is missing");
+        }
+    
         this.oldStickNode = this.stickNode;
         this.stickNode.destroy();
     }
@@ -220,7 +264,7 @@ export default class GameplayController extends cc.Component {
         if (playerComp) {
             playerComp.runToPosition(cc.v3(this.stickNode.x + this.stickNode.height, this.playerNode.y), moveTime, () => {
                 playerComp.fall();
-                this.stickNode.angle = -175;
+                this.stickComponent.stickOnFail();
             });
         } else {
             console.error("Player component is missing");
@@ -229,8 +273,7 @@ export default class GameplayController extends cc.Component {
 
     instantiateNextPlatform() {
         console.log("instantiateNextPlatform");
-        let newPlatform = this.createPlatform(this.nextPlatformNode.x + this.nextPlatformNode.width / 2 + 200, 0);
-        this.nextPlatformNode = newPlatform;
+        this.spawnNextPlatform();
 
         let platformAppearanceTime = this.moveDistance / (200 * 1.5);
         cc.tween(this.rootNode)
@@ -238,7 +281,6 @@ export default class GameplayController extends cc.Component {
             .start();
 
         this.scheduleOnce(() => {
-            //this.createStick();
             this.initStickNode();
         }, platformAppearanceTime);
     }

@@ -27,7 +27,7 @@ export default class Player extends cc.Component {
     fall() {
         this.playerState = PlayerStates.Fall;
         cc.tween(this.node)
-            .to(0.5, { position: cc.v3(this.node.x, -500) })
+            .to(0.5, { position: cc.v3(this.node.x, -1000) })
             .start();
     }
 }

@@ -40,9 +40,15 @@ export default class Stick extends cc.Component {
         }
     }
 
-    fallStick() {
+    stickFall() {
         cc.tween(this.node)
             .to(this.angleTime, { angle: -90 })
+            .start();
+    }
+
+    stickOnFail(){
+        cc.tween(this.node)
+            .to(this.angleTime, { angle: -180 })
             .start();
     }
 }
