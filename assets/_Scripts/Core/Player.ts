@@ -8,8 +8,11 @@ export default class Player extends cc.Component {
     animation: cc.Animation = null;
 
     private playerState: PlayerStates = PlayerStates.Idle;
+    private isFlipped: boolean = false;
+    private originalY: number = 0; // Переменная для хранения оригинальной позиции Y
 
     onLoad() {
+        this.originalY = this.node.position.y; // Сохраняем оригинальную позицию Y
         this.setState(PlayerStates.Idle);
     }
 
@@ -22,24 +25,11 @@ export default class Player extends cc.Component {
     }
 
     flipPlayer() {
-        this.node.scaleY = -this.node.scaleY;
-    }
-
-    runToPosition(targetPosition: cc.Vec3, duration: number, onComplete: () => void) {
-        this.setState(PlayerStates.Running);
-        cc.tween(this.node)
-            .to(duration, { position: targetPosition })
-            .call(() => {
-                this.setState(PlayerStates.Idle);
-                onComplete();
-            })
-            .start();
-
-        let moveDistance = targetPosition.x - this.node.x;
-        let rootNode = this.node.parent;
-        cc.tween(rootNode)
-            .to(duration, { position: cc.v3(rootNode.position.x - moveDistance, rootNode.position.y) })
-            .start();
+        this.isFlipped = !this.isFlipped;
+        this.node.scaleY = this.isFlipped ? -1 : 1;
+        const newY = this.isFlipped ? this.node.position.y - 40 : this.node.position.y + 40;
+        this.node.setPosition(this.node.position.x, newY);
+        cc.log('Player flipped:', this.isFlipped, 'New Position Y:', newY);
     }
 
     fall() {
