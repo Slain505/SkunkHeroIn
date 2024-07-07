@@ -1,3 +1,5 @@
+import AudioController from "../UI/AudioController";
+
 const { ccclass, property } = cc._decorator;
 
 @ccclass
@@ -60,7 +62,7 @@ export default class Platform extends cc.Component {
         console.log("Bonus Platform width set to", this.bonusPlatform.width);
     }
 
-    isStickTouching(stickRightX: number): boolean {
+    isStickTouching(stickRightX: number, audioController: AudioController): boolean {
         console.log("isStickTouching", stickRightX, this.node.x, this.node.width);
     
         const scoreController = cc.find('Canvas/UI/Score').getComponent('ScoreController');
@@ -71,6 +73,7 @@ export default class Platform extends cc.Component {
         console.log("Bonus platform left", bonusPlatformLeft, "right", bonusPlatformRight, "stick right", stickRightX);
         if (this.bonusPlatformShowed && stickRightX > bonusPlatformLeft && stickRightX < bonusPlatformRight) {
             scoreController.increaseScore(true);
+            audioController.playSound(audioController.bonusSound);
             console.log("Bonus platform touched");
             return true;
         }
@@ -79,6 +82,7 @@ export default class Platform extends cc.Component {
         const platformRight = this.node.x + this.node.width / 2;
     
         if(stickRightX > platformLeft && stickRightX < platformRight) {
+            
             console.log("Platform touched");
             return true;
         }

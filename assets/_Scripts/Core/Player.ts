@@ -4,15 +4,33 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class Player extends cc.Component {
+    @property(cc.Animation)
+    animation: cc.Animation = null;
 
-    playerState = PlayerStates.Idle;
+    private playerState: PlayerStates = PlayerStates.Idle;
+
+    onLoad() {
+        this.setState(PlayerStates.Idle);
+    }
+
+    setState(state: PlayerStates) {
+        if (this.playerState !== state) {
+            this.playerState = state;
+            this.animation.play(state);
+            cc.log('Player state:', state, 'Animation:', this.animation.name);
+        }
+    }
+
+    flipPlayer() {
+        this.node.scaleY = -this.node.scaleY;
+    }
 
     runToPosition(targetPosition: cc.Vec3, duration: number, onComplete: () => void) {
-        this.playerState = PlayerStates.Run;
+        this.setState(PlayerStates.Running);
         cc.tween(this.node)
             .to(duration, { position: targetPosition })
             .call(() => {
-                this.playerState = PlayerStates.Idle;
+                this.setState(PlayerStates.Idle);
                 onComplete();
             })
             .start();
@@ -25,7 +43,7 @@ export default class Player extends cc.Component {
     }
 
     fall() {
-        this.playerState = PlayerStates.Fall;
+        this.setState(PlayerStates.Falling);
         cc.tween(this.node)
             .to(0.5, { position: cc.v3(this.node.x, -1000) })
             .start();

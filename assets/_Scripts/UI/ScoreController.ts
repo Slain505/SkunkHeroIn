@@ -17,8 +17,8 @@ export default class ScoreController extends cc.Component {
     })
     perfectLabelNode: cc.Node = null;
 
-    private score: number = 0;
-    private bestScore: number = 0;
+    public score: number = 0;
+    public bestScore: number = 0;
 
     increaseScore(isBonus: boolean = false) {
         this.score++;
@@ -45,5 +45,10 @@ export default class ScoreController extends cc.Component {
 
     updateScore() {
         this.scoreTextNode.getComponent(cc.Label).string = this.score.toString();
+    }
+
+    resetScore() {
+        this.score = 0;
+        this.updateScore();
     }
 }

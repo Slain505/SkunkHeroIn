@@ -2,6 +2,10 @@ import { GameStates } from "./States/GameStates";
 import Stick from './Stick';
 import Platform from './Platform';
 import Player from './Player';
+import EndGamePopup from "../UI/EndGamePopup";
+import ScoreController from "../UI/ScoreController";
+import AudioController from "../UI/AudioController";
+import { PlayerStates } from "./States/PlayerStates";
 
 const { ccclass, property } = cc._decorator;
 
@@ -56,18 +60,52 @@ export default class GameplayController extends cc.Component {
         tooltip: 'Necessary for calculating initial platform position'
     })
     platformPrefabWidth: number = 300;
-
+    
+    @property({
+        type: cc.Prefab,
+        displayName: 'End Game Popup Prefab',
+        tooltip: 'Prefab for the end game popup'
+    })
+    endGamePopupPrefab: cc.Prefab = null;
+    
+    @property({
+        type: cc.Node,
+        displayName: 'UI Node',
+        tooltip: 'Node for UI elements'
+    })
+    uiNode: cc.Node = null;
+    
+    @property({
+        type: cc.Node,
+        displayName: 'Score Node',
+        tooltip: 'Node that displays the current score'
+    })
+    scoreNode: cc.Node = null;
+    
+    private endGamePopupInstance: cc.Node = null;
+    private endGamePopupComponent: EndGamePopup = null;
+    private scoreController: ScoreController = null;
     private platformNode: cc.Node = null;
     private nextPlatformNode: cc.Node = null;
     private oldStickNode: cc.Node = null;
     private stickNode: cc.Node = null;
     private playerNode: cc.Node = null;
     private stickComponent: Stick = null;
+    private audioController: AudioController = null;
     moveDistance: cc.Float;
     GameState = GameStates.Idle;
 
     protected onLoad(): void {
         console.log("GameplayController onLoad");
+        
+        this.endGamePopupInstance = cc.instantiate(this.endGamePopupPrefab);
+        this.uiNode.addChild(this.endGamePopupInstance);
+        this.endGamePopupComponent = this.endGamePopupInstance.getComponent(EndGamePopup);
+        
+        this.scoreController = cc.find('Canvas/UI/Score').getComponent(ScoreController);
+        
+        this.audioController = AudioController.getInstance();
+
         this.initialInstance();
         this.initTouchEvents();
     }
@@ -80,6 +118,8 @@ export default class GameplayController extends cc.Component {
         this.platformNode = this.createPlatform(initialPlatformX, this.platformPrefabWidth, false);
         this.playerNode = this.createPlayer(initialPlayerX);
         this.spawnNextPlatform();
+
+        this.GameState = GameStates.Idle;
     }
 
     calculateNextPlatformPosition(): number {
@@ -112,6 +152,7 @@ export default class GameplayController extends cc.Component {
         console.log("createPlatform", positionX, initialWidth);
         
         let platformInstance = cc.instantiate(this.platformPrefab);
+        platformInstance.zIndex = 997;
         this.node.addChild(platformInstance);
         const platformComp = platformInstance.getComponent(Platform);
         if (platformComp) {
@@ -126,6 +167,7 @@ export default class GameplayController extends cc.Component {
         console.log("createPlayer");
         
         let playerInstance = cc.instantiate(this.playerPrefab);
+        playerInstance.zIndex = 998;
         this.node.addChild(playerInstance);
         playerInstance.setPosition(positionX, this.platformNode.y + this.platformNode.height / 2 + playerInstance.height / 2);
         return playerInstance;
@@ -162,6 +204,8 @@ export default class GameplayController extends cc.Component {
         this.stickComponent = this.stickNode.getComponent(Stick);
         if (this.stickComponent) {
             this.stickComponent.startStickGrowth();
+            this.playerNode.getComponent(Player).setState(PlayerStates.StickGrow);
+            this.audioController.playStickGrowSound();
         } else {
             console.error("Stick component is missing");
         }
@@ -169,14 +213,25 @@ export default class GameplayController extends cc.Component {
 
     onTouchEnd() {
         console.log("onTouchEnd");
+        
+        if(this.GameState === GameStates.Running && this.playerNode){
+            this.playerNode.getComponent(Player).flipPlayer();
+        }
+
         if (this.GameState !== GameStates.Touching || !this.stickNode) {
             return;
         }
+        
         this.stickComponent = this.stickNode.getComponent(Stick);
+        
         if (this.stickComponent) {
             this.stickComponent.stopStickGrowth();
+            this.playerNode.getComponent(Player).setState(PlayerStates.HitStick);
             this.stickComponent.stickFall();
+            this.audioController.stopStickGrowSound();
+            this.audioController.playSound(this.audioController.stickHitSound);
             this.GameState = GameStates.End;
+            
             this.scheduleOnce(this.checkResult.bind(this), this.stickComponent.angleTime);
         } else {
             console.error("Stick component is missing");
@@ -192,7 +247,9 @@ export default class GameplayController extends cc.Component {
         const stickRightX = this.stickNode.x + this.stickNode.height;
         const nextPlatformComp = this.nextPlatformNode.getComponent(Platform);
 
-        if (nextPlatformComp && nextPlatformComp.isStickTouching(stickRightX)) {
+        if (nextPlatformComp && nextPlatformComp.isStickTouching(stickRightX, this.audioController)) {
+            this.audioController.playSound(this.audioController.stickFallSound);
+        
             this.onStickTouchPlatform();
             
         } else {
@@ -209,6 +266,8 @@ export default class GameplayController extends cc.Component {
 
         const playerComp = this.playerNode.getComponent(Player);
         const scoreController = cc.find('Canvas/UI/Score').getComponent('ScoreController');
+        
+        this.GameState = GameStates.Running;
 
         if (playerComp) {
             playerComp.runToPosition(cc.v3(nextPlatformEdge, this.playerNode.y), moveTime, () => {
@@ -238,6 +297,8 @@ export default class GameplayController extends cc.Component {
         cc.tween(this.playerNode)
             .to(moveTime, { x: moveAmount })
             .start();
+            
+        this.audioController.playSound(this.audioController.platformSound);
         // Remove the old platform
         this.platformNode.destroy();
         this.platformNode = null;
@@ -264,10 +325,56 @@ export default class GameplayController extends cc.Component {
         if (playerComp) {
             playerComp.runToPosition(cc.v3(this.stickNode.x + this.stickNode.height, this.playerNode.y), moveTime, () => {
                 playerComp.fall();
+                this.audioController.playSound(this.audioController.fallSound);
                 this.stickComponent.stickOnFail();
+                this.scheduleOnce(() => {
+                    this.endGame();
+                }, 1.5);
             });
         } else {
             console.error("Player component is missing");
+        }
+    }
+
+    endGame() {
+        console.log("endGame");
+        this.GameState = GameStates.End;
+        this.scoreController.saveBestScore();
+        this.scoreNode.active = false;
+        this.endGamePopupComponent.showPopup(this.scoreController.score, this.scoreController.bestScore);
+    }
+    
+    restartGame() {
+        console.log("restartGame");
+        this.endGamePopupComponent.hidePopup();
+        this.scoreNode.active = true;
+        this.scoreController.resetScore();
+        this.clearGameObjects();
+        this.initialInstance();
+    }
+    
+    clearGameObjects() {
+        if (this.platformNode) {
+            this.platformNode.destroy();
+            this.platformNode = null;
+        }
+        if (this.nextPlatformNode) {
+            this.nextPlatformNode.destroy();
+            this.nextPlatformNode = null;
+        }
+
+        if (this.stickNode) {
+            this.stickNode.destroy();
+            this.stickNode = null;
+        }
+        if (this.oldStickNode) {
+            this.oldStickNode.destroy();
+            this.oldStickNode = null;
+        }
+    
+        if (this.playerNode) {
+            this.playerNode.destroy();
+            this.playerNode = null;
         }
     }
 
@@ -275,12 +382,13 @@ export default class GameplayController extends cc.Component {
         console.log("instantiateNextPlatform");
         this.spawnNextPlatform();
 
-        let platformAppearanceTime = this.moveDistance / (200 * 1.5);
+        let platformAppearanceTime = this.moveDistance / (200 * 3);
         cc.tween(this.rootNode)
             .to(platformAppearanceTime, { position: cc.v3(this.rootNode.x - this.moveDistance) })
             .start();
 
         this.scheduleOnce(() => {
+            this.GameState = GameStates.Idle;
             this.initStickNode();
         }, platformAppearanceTime);
     }

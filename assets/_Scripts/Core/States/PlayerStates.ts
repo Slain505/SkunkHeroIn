@@ -1,5 +1,7 @@
 export enum PlayerStates {
-    Idle = "Idle",
-    Fall = "Fall",
-    Run = "Run"
+    Idle = "PlayerIdle",
+    Running = "PlayerRun",
+    StickGrow = "PlayerStickGrow",
+    HitStick = "PlayerHitStick",
+    Falling = "Falling"
 }
