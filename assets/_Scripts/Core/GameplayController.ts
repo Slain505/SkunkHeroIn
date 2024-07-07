@@ -95,12 +95,6 @@ export default class GameplayController extends cc.Component {
     moveDistance: cc.Float;
     GameState = GameStates.Idle;
 
-    private startPositionX: number = 0; // Начальная позиция X игрока
-    private targetPositionX: number = 0; // Целевая позиция X игрока
-    private moveDuration: number = 0;
-    private moveTimeElapsed: number = 0;
-    private moveCallback: () => void = null;
-
     protected onLoad(): void {
         console.log("GameplayController onLoad");
         
@@ -183,21 +177,6 @@ export default class GameplayController extends cc.Component {
         if (this.GameState === GameStates.Touching && this.stickNode) {
             this.stickNode.getComponent(Stick).stickGrowth(deltaTime);
         }
-
-        if (this.GameState === GameStates.Running && this.targetPositionX !== 0) {
-            this.moveTimeElapsed += deltaTime;
-            let progress = Math.min(this.moveTimeElapsed / this.moveDuration, 1);
-            const newPositionX = cc.misc.lerp(this.startPositionX, this.targetPositionX, progress);
-            this.playerNode.setPosition(newPositionX, this.playerNode.position.y);
-            
-            if (progress >= 1) {
-                this.GameState = GameStates.Idle;
-                this.targetPositionX = 0;
-                if (this.moveCallback) {
-                    this.moveCallback();
-                }
-            }
-        }
     }
 
     initTouchEvents() {
@@ -234,18 +213,17 @@ export default class GameplayController extends cc.Component {
 
     onTouchEnd() {
         console.log("onTouchEnd");
-
-        if (this.GameState === GameStates.Running && this.playerNode) {
+        
+        if(this.GameState === GameStates.Running && this.playerNode){
             this.playerNode.getComponent(Player).flipPlayer();
-            return;
         }
 
         if (this.GameState !== GameStates.Touching || !this.stickNode) {
             return;
         }
-
+        
         this.stickComponent = this.stickNode.getComponent(Stick);
-
+        
         if (this.stickComponent) {
             this.stickComponent.stopStickGrowth();
             this.playerNode.getComponent(Player).setState(PlayerStates.HitStick);
@@ -253,21 +231,11 @@ export default class GameplayController extends cc.Component {
             this.audioController.stopStickGrowSound();
             this.audioController.playSound(this.audioController.stickHitSound);
             this.GameState = GameStates.End;
-
+            
             this.scheduleOnce(this.checkResult.bind(this), this.stickComponent.angleTime);
         } else {
             console.error("Stick component is missing");
         }
-    }
-
-    moveTo(targetPositionX: number, duration: number, onComplete: () => void) {
-        this.startPositionX = this.playerNode.position.x;
-        this.targetPositionX = targetPositionX;
-        this.moveDuration = duration;
-        this.moveTimeElapsed = 0;
-        this.moveCallback = onComplete;
-        this.GameState = GameStates.Running;
-        this.playerNode.getComponent(Player).setState(PlayerStates.Running); // Устанавливаем состояние Running
     }
 
     checkResult() {
@@ -294,15 +262,24 @@ export default class GameplayController extends cc.Component {
         let nextPlatformEdge = this.nextPlatformNode.x + this.nextPlatformNode.width / 3;
 
         this.moveDistance = nextPlatformEdge - this.playerNode.x;
-        let moveTime = Math.abs(this.moveDistance / 100);  // Увеличиваем продолжительность
+        let moveTime = Math.abs(this.moveDistance / 500);
 
-        this.moveTo(nextPlatformEdge, moveTime, () => {
-            this.scheduleOnce(() => {
-                this.resetPlatformsAndPlayer();
-                this.instantiateNextPlatform();
-                this.scoreController.increaseScore();
+        const playerComp = this.playerNode.getComponent(Player);
+        const scoreController = cc.find('Canvas/UI/Score').getComponent('ScoreController');
+        
+        this.GameState = GameStates.Running;
+
+        if (playerComp) {
+            playerComp.runToPosition(cc.v3(nextPlatformEdge, this.playerNode.y), moveTime, () => {
+                this.scheduleOnce(() => {
+                    this.resetPlatformsAndPlayer();
+                    this.instantiateNextPlatform();
+                    scoreController.increaseScore();
+                });
             });
-        });
+        } else {
+            console.error("Player component is missing");
+        }
     }
 
     resetPlatformsAndPlayer() {
@@ -342,16 +319,21 @@ export default class GameplayController extends cc.Component {
     onFailed() {
         console.log("onFailed");
         let moveLength = this.stickNode.x + this.stickNode.height - this.playerNode.x;
-        let moveTime = Math.abs(moveLength / 100);  // Увеличиваем продолжительность
+        let moveTime = Math.abs(moveLength / 200);
 
-        this.moveTo(this.stickNode.x + this.stickNode.height, moveTime, () => {
-            this.playerNode.getComponent(Player).fall();
-            this.audioController.playSound(this.audioController.fallSound);
-            this.stickComponent.stickOnFail();
-            this.scheduleOnce(() => {
-                this.endGame();
-            }, 1.5);
-        });
+        const playerComp = this.playerNode.getComponent(Player);
+        if (playerComp) {
+            playerComp.runToPosition(cc.v3(this.stickNode.x + this.stickNode.height, this.playerNode.y), moveTime, () => {
+                playerComp.fall();
+                this.audioController.playSound(this.audioController.fallSound);
+                this.stickComponent.stickOnFail();
+                this.scheduleOnce(() => {
+                    this.endGame();
+                }, 1.5);
+            });
+        } else {
+            console.error("Player component is missing");
+        }
     }
 
     endGame() {
