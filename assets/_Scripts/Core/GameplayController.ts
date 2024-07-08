@@ -109,6 +109,7 @@ export default class GameplayController extends cc.Component {
     private moveDuration: number = 0;
     private moveTimeElapsed: number = 0;
     private moveCallback: () => void = null;
+    futurePlatformPosition: number;
 
     protected onLoad(): void {
         console.log("GameplayController onLoad");
@@ -133,6 +134,11 @@ export default class GameplayController extends cc.Component {
         const initialPlayerX = initialPlatformX + this.platformPrefabWidth / 2 - this.playerPrefabWidth / 1.2;
 
         this.platformNode = this.createPlatform(initialPlatformX, this.platformPrefabWidth, false);
+        
+        // Set default current platform position for better bonusItem range of spawn calculation
+        //todo: refactor this(change naming)
+        this.futurePlatformPosition = this.platformNode.x;
+
         this.playerNode = this.createPlayer(initialPlayerX);
         this.spawnNextPlatform();
 
@@ -150,11 +156,11 @@ export default class GameplayController extends cc.Component {
     }
 
     calculateNextBonusItemPosition(targetXPlatform: number): number {
-        const currentPlatformRightEdge = this.platformNode.x + this.platformNode.width / 2;
-        const nextPlatformLeftEdge = targetXPlatform - this.nextPlatformNode.width / 2;
         const minOffset = 50;
+        const currentPlatformRightEdge = this.futurePlatformPosition + this.platformNode.width / 2 + minOffset;
+        const nextPlatformLeftEdge = targetXPlatform - this.nextPlatformNode.width / 2  - minOffset;
 
-        const targetX = currentPlatformRightEdge + Math.random() * (nextPlatformLeftEdge - currentPlatformRightEdge - 2 * minOffset);
+        const targetX = currentPlatformRightEdge + Math.random() * (nextPlatformLeftEdge - currentPlatformRightEdge);
         
         return targetX;
     }
@@ -227,7 +233,7 @@ export default class GameplayController extends cc.Component {
             this.stickNode.getComponent(Stick).stickGrowth(deltaTime);
         }
 
-        if (this.GameState === GameStates.Running && this.targetPositionX !== 0) {
+        if (this.GameState === GameStates.Running || this.GameState === GameStates.Comming && this.targetPositionX !== 0) {
             this.moveTimeElapsed += deltaTime;
             let progress = Math.min(this.moveTimeElapsed / this.moveDuration, 1);
             const newPositionX = cc.misc.lerp(this.startPositionX, this.targetPositionX, progress);
@@ -239,6 +245,10 @@ export default class GameplayController extends cc.Component {
                 if (this.moveCallback) {
                     this.moveCallback();
                 }
+            }
+
+            if(this.playerNode.x >= this.nextPlatformNode.x - this.nextPlatformNode.width / 2 && this.GameState === GameStates.Running) {
+                this.setState(GameStates.Comming, 'update');
             }
         }
 
@@ -360,9 +370,10 @@ export default class GameplayController extends cc.Component {
         let moveAmount = -cc.winSize.width / 3;
         let moveTime = 0.1; // Adjust this value as needed
 
+        this.futurePlatformPosition = moveAmount - this.nextPlatformNode.width / 2 + this.playerNode.width / 1.3
         // Move current platform to the left edge
         cc.tween(this.nextPlatformNode)
-            .to(moveTime, { x: moveAmount - this.nextPlatformNode.width / 2 + this.playerNode.width / 1.3})
+            .to(moveTime, { x: this.futurePlatformPosition})
             .start();
 
         // Move player to the left edge
@@ -386,6 +397,10 @@ export default class GameplayController extends cc.Component {
     
         this.oldStickNode = this.stickNode;
         this.stickNode.destroy();
+
+        if(this.bonusItemNode) {
+            this.bonusItemNode.destroy();
+        }
     }
 
     onFailed() {
