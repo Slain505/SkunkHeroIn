@@ -1,6 +1,6 @@
 export enum GameStates {
-    Idle,
-    Touching,
-    Running,
-    End
+    Idle = 'Idle',
+    Touching = 'Touching',
+    Running = 'Running',
+    End = 'End'
 }

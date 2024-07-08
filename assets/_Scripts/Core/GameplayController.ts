@@ -112,6 +112,8 @@ export default class GameplayController extends cc.Component {
 
     protected onLoad(): void {
         console.log("GameplayController onLoad");
+
+        cc.director.getCollisionManager().enabled = true;
         
         this.endGamePopupInstance = cc.instantiate(this.endGamePopupPrefab);
         this.uiNode.addChild(this.endGamePopupInstance);
@@ -134,7 +136,7 @@ export default class GameplayController extends cc.Component {
         this.playerNode = this.createPlayer(initialPlayerX);
         this.spawnNextPlatform();
 
-        this.GameState = GameStates.Idle;
+        this.setState(GameStates.Idle, 'initialInstance');
     }
 
     calculateNextPlatformPosition(): number {
@@ -191,7 +193,7 @@ export default class GameplayController extends cc.Component {
             .start();
 
         cc.tween(this.bonusItemNode)
-            .to(0.5, { x: targetXBonusItem })
+            .to(0.25, { x: targetXBonusItem })
             .start();
     }
 
@@ -232,12 +234,16 @@ export default class GameplayController extends cc.Component {
             this.playerNode.setPosition(newPositionX, this.playerNode.position.y);
             
             if (progress >= 1) {
-                this.GameState = GameStates.Idle;
+                this.setState(GameStates.Idle, 'update');
                 this.targetPositionX = 0;
                 if (this.moveCallback) {
                     this.moveCallback();
                 }
             }
+        }
+
+        if(this.playerNode.getComponent(Player).getState() === PlayerStates.Crash) {
+            this.onPlayerCrashInToPlatform();
         }
     }
 
@@ -257,11 +263,11 @@ export default class GameplayController extends cc.Component {
     }
 
     onTouchStart() {
-        console.log("onTouchStart");
+        console.log("onTouchStart", this.GameState);
         if (this.GameState !== GameStates.Idle) {
             return;
         }
-        this.GameState = GameStates.Touching;
+        this.setState(GameStates.Touching);
         this.createStick();
         this.stickComponent = this.stickNode.getComponent(Stick);
         if (this.stickComponent) {
@@ -293,7 +299,7 @@ export default class GameplayController extends cc.Component {
             this.stickComponent.stickFall();
             this.audioController.stopStickGrowSound();
             this.audioController.playSound(this.audioController.stickHitSound);
-            this.GameState = GameStates.End;
+            this.setState(GameStates.End);
 
             this.scheduleOnce(this.checkResult.bind(this), this.stickComponent.angleTime);
         } else {
@@ -307,7 +313,7 @@ export default class GameplayController extends cc.Component {
         this.moveDuration = duration;
         this.moveTimeElapsed = 0;
         this.moveCallback = onComplete;
-        this.GameState = GameStates.Running;
+        this.setState(GameStates.Running);
         this.playerNode.getComponent(Player).setState(PlayerStates.Running);
     }
 
@@ -343,7 +349,7 @@ export default class GameplayController extends cc.Component {
                 this.instantiateNextPlatform();
                 this.scoreController.increaseScore();
             });
-            this.GameState = GameStates.Idle;
+            this.setState(GameStates.Idle, 'onStickTouchPlatform');
             this.playerNode.getComponent(Player).setState(PlayerStates.Idle);
         });
     }
@@ -393,13 +399,22 @@ export default class GameplayController extends cc.Component {
             this.stickComponent.stickOnFail();
             this.scheduleOnce(() => {
                 this.endGame();
-            }, 1.5);
+            }, 1);
         });
+    }
+
+    onPlayerCrashInToPlatform() {
+        console.log("onPlayerCrashInToPlatform");
+        this.playerNode.getComponent(Player).fall();
+        this.setState(GameStates.End);
+        this.scheduleOnce(() => {
+            this.endGame();
+        }, 1);
     }
 
     endGame() {
         console.log("endGame");
-        this.GameState = GameStates.End;
+        this.setState(GameStates.End);
         this.scoreController.saveBestScore();
         this.scoreNode.active = false;
         this.endGamePopupComponent.showPopup(this.scoreController.score, this.scoreController.bestScore);
@@ -452,15 +467,12 @@ export default class GameplayController extends cc.Component {
         cc.tween(this.rootNode)
             .to(platformAppearanceTime, { position: cc.v3(this.rootNode.x - this.moveDistance) })
             .start();
-
-        this.scheduleOnce(() => {
-            this.GameState = GameStates.Idle;
-            this.initStickNode();
-        }, platformAppearanceTime);
     }
 
-    initStickNode() {
-        console.log("initStickNode");
-        this.GameState = GameStates.Idle;
+    setState(state: GameStates, methodName: string = '') {
+        if (this.GameState !== state) {
+            this.GameState = state;
+            cc.log('Game state:', state, 'Method:', methodName);
+        }
     }
 }

@@ -47,8 +47,15 @@ export default class Platform extends cc.Component {
     })
     bonusPlatformShowed: boolean = true;
 
+    onLoad() {
+        const collider = this.node.addComponent(cc.BoxCollider);
+        collider.size = new cc.Size(this.node.width, this.node.height - 10);
+        collider.offset = new cc.Vec2(0, -5);
+    }
+
     initPlatform(positionX: number, initialWidth: number = 0, bonusPlatformVisible: boolean = true) {
         console.log("initPlatform", positionX, initialWidth);
+
         this.node.x = positionX;
         let randomWidth = Math.random();
         this.node.width = initialWidth > 0 ? initialWidth : this.platformMinWidth + randomWidth * (this.platformMaxWidth - this.platformMinWidth);

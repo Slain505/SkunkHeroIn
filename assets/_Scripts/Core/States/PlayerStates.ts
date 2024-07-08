@@ -3,5 +3,6 @@ export enum PlayerStates {
     Running = "PlayerRun",
     StickGrow = "PlayerStickGrow",
     HitStick = "PlayerHitStick",
-    Falling = "Falling"
+    Falling = "Falling",
+    Crash = "Crash"
 }

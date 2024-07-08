@@ -14,7 +14,7 @@ export default class Player extends cc.Component {
         this.originalY = this.node.position.y;
         this.setState(PlayerStates.Idle);
 
-        cc.director.getCollisionManager().enabled = true;
+
     }
 
     setState(state: PlayerStates) {
@@ -23,6 +23,10 @@ export default class Player extends cc.Component {
             this.animation.play(state);
             cc.log('Player state:', state, 'Animation:', this.animation.name);
         }
+    }
+
+    getState() {
+        return this.playerState;
     }
 
     flipPlayer() {
@@ -44,6 +48,10 @@ export default class Player extends cc.Component {
         if(other.node.group === 'Bonus') {
             cc.log('Player collided with bonus item');
             other.node.destroy();
+        }
+        if(other.node.group === 'Platform') {
+            cc.log('Player collided with platform, failed');
+            this.playerState = PlayerStates.Crash;
         }
     }
 }
