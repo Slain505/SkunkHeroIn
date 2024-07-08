@@ -1008,6 +1008,9 @@
     "playerPrefab": {
       "__uuid__": "64358ee7-bb03-43c1-a439-ecc445b14f11"
     },
+    "bonusItemPrefab": {
+      "__uuid__": "ec79658e-b632-41d5-af42-83f3cad27127"
+    },
     "playerPrefabWidth": 45,
     "platformPrefabWidth": 300,
     "endGamePopupPrefab": {

@@ -6,6 +6,7 @@ import EndGamePopup from "../UI/EndGamePopup";
 import ScoreController from "../UI/ScoreController";
 import AudioController from "../UI/AudioController";
 import { PlayerStates } from "./States/PlayerStates";
+import BonusItem from "./BonusItem";
 
 const { ccclass, property } = cc._decorator;
 
@@ -48,6 +49,13 @@ export default class GameplayController extends cc.Component {
     playerPrefab: cc.Prefab = null;
 
     @property({
+        type: cc.Prefab,
+        displayName: 'Bonus Item Prefab',
+        tooltip: 'Prefab for the bonus item'
+    })
+    bonusItemPrefab: cc.Prefab = null;
+
+    @property({
         type: cc.Float,
         displayName: 'Player Prefab Width',
         tooltip: 'Necessary for calculating initial player position'
@@ -83,20 +91,21 @@ export default class GameplayController extends cc.Component {
     scoreNode: cc.Node = null;
     
     private endGamePopupInstance: cc.Node = null;
-    private endGamePopupComponent: EndGamePopup = null;
-    private scoreController: ScoreController = null;
     private platformNode: cc.Node = null;
     private nextPlatformNode: cc.Node = null;
     private oldStickNode: cc.Node = null;
     private stickNode: cc.Node = null;
     private playerNode: cc.Node = null;
+    private bonusItemNode: cc.Node = null;
     private stickComponent: Stick = null;
+    private endGamePopupComponent: EndGamePopup = null;
+    private scoreController: ScoreController = null;
     private audioController: AudioController = null;
     moveDistance: cc.Float;
     GameState = GameStates.Idle;
 
-    private startPositionX: number = 0; // Начальная позиция X игрока
-    private targetPositionX: number = 0; // Целевая позиция X игрока
+    private startPositionX: number = 0;
+    private targetPositionX: number = 0;
     private moveDuration: number = 0;
     private moveTimeElapsed: number = 0;
     private moveCallback: () => void = null;
@@ -138,19 +147,51 @@ export default class GameplayController extends cc.Component {
         return targetX;
     }
 
+    calculateNextBonusItemPosition(targetXPlatform: number): number {
+        const currentPlatformRightEdge = this.platformNode.x + this.platformNode.width / 2;
+        const nextPlatformLeftEdge = targetXPlatform - this.nextPlatformNode.width / 2;
+        const minOffset = 50;
+
+        const targetX = currentPlatformRightEdge + Math.random() * (nextPlatformLeftEdge - currentPlatformRightEdge - 2 * minOffset);
+        
+        return targetX;
+    }
+
     spawnNextPlatform() {
         console.log("spawnNextPlatform");
         const spawnX = cc.winSize.width;
-        const targetX = this.calculateNextPlatformPosition();
-
+        const targetXPlatform = this.calculateNextPlatformPosition();
         this.nextPlatformNode = this.createPlatform(spawnX, 0, true);
-        this.movePlatformOntoScreen(this.nextPlatformNode, targetX);
+
+        const targetXBonusItem = this.calculateNextBonusItemPosition(targetXPlatform);
+        this.bonusItemNode = this.createBonusItem(spawnX);
+        
+        this.movePlatformOntoScreen(this.nextPlatformNode, this.bonusItemNode, targetXPlatform, targetXBonusItem);
     }
 
-    movePlatformOntoScreen(platformNode: cc.Node, targetX: number) {
-        console.log("movePlatformOntoScreen", platformNode, targetX);
+    createBonusItem(spawnX: number) {
+        console.log('createBonusItem');
+        let bonusItemInstance = cc.instantiate(this.bonusItemPrefab);
+        bonusItemInstance.zIndex = 997;
+        this.node.addChild(bonusItemInstance);
+        const bonusItemComp = bonusItemInstance.getComponent(BonusItem);
+        if (bonusItemComp) {
+            bonusItemComp.initPlatform(spawnX);
+        } else {
+            console.error("Platform component is missing");
+        }
+        return bonusItemInstance;
+    }
+
+    movePlatformOntoScreen(platformNode: cc.Node, bonusItemNode: cc.Node, targetXPlatform: number, targetXBonusItem: number) {
+        console.log("movePlatformOntoScreen", platformNode, targetXPlatform, bonusItemNode, targetXBonusItem);
+
         cc.tween(platformNode)
-            .to(0.5, { x: targetX })
+            .to(0.5, { x: targetXPlatform })
+            .start();
+
+        cc.tween(this.bonusItemNode)
+            .to(0.5, { x: targetXBonusItem })
             .start();
     }
 
@@ -267,7 +308,7 @@ export default class GameplayController extends cc.Component {
         this.moveTimeElapsed = 0;
         this.moveCallback = onComplete;
         this.GameState = GameStates.Running;
-        this.playerNode.getComponent(Player).setState(PlayerStates.Running); // Устанавливаем состояние Running
+        this.playerNode.getComponent(Player).setState(PlayerStates.Running);
     }
 
     checkResult() {
@@ -294,7 +335,7 @@ export default class GameplayController extends cc.Component {
         let nextPlatformEdge = this.nextPlatformNode.x + this.nextPlatformNode.width / 3;
 
         this.moveDistance = nextPlatformEdge - this.playerNode.x;
-        let moveTime = Math.abs(this.moveDistance / 100);  // Увеличиваем продолжительность
+        let moveTime = Math.abs(this.moveDistance / 500);
 
         this.moveTo(nextPlatformEdge, moveTime, () => {
             this.scheduleOnce(() => {
@@ -302,6 +343,8 @@ export default class GameplayController extends cc.Component {
                 this.instantiateNextPlatform();
                 this.scoreController.increaseScore();
             });
+            this.GameState = GameStates.Idle;
+            this.playerNode.getComponent(Player).setState(PlayerStates.Idle);
         });
     }
 
@@ -342,7 +385,7 @@ export default class GameplayController extends cc.Component {
     onFailed() {
         console.log("onFailed");
         let moveLength = this.stickNode.x + this.stickNode.height - this.playerNode.x;
-        let moveTime = Math.abs(moveLength / 100);  // Увеличиваем продолжительность
+        let moveTime = Math.abs(moveLength / 500);
 
         this.moveTo(this.stickNode.x + this.stickNode.height, moveTime, () => {
             this.playerNode.getComponent(Player).fall();
@@ -393,6 +436,11 @@ export default class GameplayController extends cc.Component {
         if (this.playerNode) {
             this.playerNode.destroy();
             this.playerNode = null;
+        }
+
+        if (this.bonusItemNode) {
+            this.bonusItemNode.destroy();
+            this.bonusItemNode = null;
         }
     }
 
