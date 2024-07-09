@@ -1,3 +1,4 @@
+import { GameStates } from './States/GameStates';
 import { PlayerStates } from './States/PlayerStates';
 
 const { ccclass, property } = cc._decorator;
@@ -8,8 +9,11 @@ export default class Player extends cc.Component {
     animation: cc.Animation = null;
 
     private playerState: PlayerStates = PlayerStates.Idle;
+    private isFlipped: boolean = false;
+    private originalY: number = 0;
 
     onLoad() {
+        this.originalY = this.node.position.y;
         this.setState(PlayerStates.Idle);
     }
 
@@ -21,25 +25,16 @@ export default class Player extends cc.Component {
         }
     }
 
-    flipPlayer() {
-        this.node.scaleY = -this.node.scaleY;
+    getState() {
+        return this.playerState;
     }
 
-    runToPosition(targetPosition: cc.Vec3, duration: number, onComplete: () => void) {
-        this.setState(PlayerStates.Running);
-        cc.tween(this.node)
-            .to(duration, { position: targetPosition })
-            .call(() => {
-                this.setState(PlayerStates.Idle);
-                onComplete();
-            })
-            .start();
-
-        let moveDistance = targetPosition.x - this.node.x;
-        let rootNode = this.node.parent;
-        cc.tween(rootNode)
-            .to(duration, { position: cc.v3(rootNode.position.x - moveDistance, rootNode.position.y) })
-            .start();
+    flipPlayer() {
+        this.isFlipped = !this.isFlipped;
+        this.node.scaleY = this.isFlipped ? -1 : 1;
+        const newY = this.isFlipped ? this.node.position.y - this.node.width - 5 : this.node.position.y + this.node.width + 5;
+        this.node.setPosition(this.node.position.x, newY);
+        cc.log('Player flipped:', this.isFlipped, 'New Position Y:', newY);
     }
 
     fall() {
@@ -47,5 +42,30 @@ export default class Player extends cc.Component {
         cc.tween(this.node)
             .to(0.5, { position: cc.v3(this.node.x, -1000) })
             .start();
+    }
+  
+onCollisionEnter(other: cc.Collider, self: cc.Collider) {
+        if (other.node.group === 'Bonus') {
+            cc.log('Player collided with bonus item');
+            const gameState = cc.find('Canvas').getComponent('GameplayController').GameState;
+            if (gameState === GameStates.Running || gameState === GameStates.Idle) {
+                other.node.destroy();
+                const skuCounterNode = cc.find('Canvas/UI/SkuCounter');
+                if (skuCounterNode) {
+                    const skuCounter = skuCounterNode.getComponent('SkuCounter');
+                    if (skuCounter) {
+                        skuCounter.increaseSkuCount('Bonus');
+                    } else {
+                        cc.error('SkuCounter component not found on SkuCounter node');
+                    }
+                } else {
+                    cc.error('SkuCounter node not found in the scene');
+                }
+            }
+        }
+        if (other.node.group === 'Platform') {
+            cc.log('Player collided with platform, failed');
+            this.playerState = PlayerStates.Crash;
+        }
     }
 }
