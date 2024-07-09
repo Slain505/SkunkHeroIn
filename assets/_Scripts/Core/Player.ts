@@ -43,8 +43,8 @@ export default class Player extends cc.Component {
             .to(0.5, { position: cc.v3(this.node.x, -1000) })
             .start();
     }
-
-    onCollisionEnter(other: cc.Collider, self: cc.Collider) {
+  
+onCollisionEnter(other: cc.Collider, self: cc.Collider) {
         if (other.node.group === 'Bonus') {
             cc.log('Player collided with bonus item');
             const gameState = cc.find('Canvas').getComponent('GameplayController').GameState;
