@@ -30,7 +30,8 @@ export default class ScoreController extends cc.Component {
                 cc.moveBy(0.5, cc.v2(0, 50)),
                 cc.fadeIn(0.3),
                 cc.delayTime(0.5),
-                cc.fadeOut(0.3)
+                cc.fadeOut(0.3),
+                cc.moveBy(0.3, cc.v2(0, -50)),
             ));
         }
         this.updateScore();

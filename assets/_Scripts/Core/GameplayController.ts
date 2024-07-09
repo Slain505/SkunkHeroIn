@@ -180,8 +180,8 @@ export default class GameplayController extends cc.Component {
     createBonusItem(spawnX: number) {
         console.log('createBonusItem');
         let bonusItemInstance = cc.instantiate(this.bonusItemPrefab);
-        bonusItemInstance.zIndex = 997;
-        this.node.addChild(bonusItemInstance);
+        bonusItemInstance.zIndex = 1;
+        this.rootNode.addChild(bonusItemInstance);
         const bonusItemComp = bonusItemInstance.getComponent(BonusItem);
         if (bonusItemComp) {
             bonusItemComp.initPlatform(spawnX);
@@ -207,8 +207,8 @@ export default class GameplayController extends cc.Component {
         console.log("createPlatform", positionX, initialWidth);
         
         let platformInstance = cc.instantiate(this.platformPrefab);
-        platformInstance.zIndex = 997;
-        this.node.addChild(platformInstance);
+        platformInstance.zIndex = 1;
+        this.rootNode.addChild(platformInstance);
         const platformComp = platformInstance.getComponent(Platform);
         if (platformComp) {
             platformComp.initPlatform(positionX, initialWidth, bonusVisible);
@@ -222,8 +222,8 @@ export default class GameplayController extends cc.Component {
         console.log("createPlayer");
         
         let playerInstance = cc.instantiate(this.playerPrefab);
-        playerInstance.zIndex = 998;
-        this.node.addChild(playerInstance);
+        playerInstance.zIndex = 1;
+        this.rootNode.addChild(playerInstance);
         playerInstance.setPosition(positionX, this.platformNode.y + this.platformNode.height / 2 + playerInstance.height / 2);
         return playerInstance;
     }
@@ -322,7 +322,7 @@ export default class GameplayController extends cc.Component {
     createStick() {
         console.log("createStick");
         this.stickNode = cc.instantiate(this.stickPrefab);
-        this.node.addChild(this.stickNode);
+        this.rootNode.addChild(this.stickNode);
         this.stickNode.setPosition(this.platformNode.x + this.platformNode.width / 2, this.platformNode.y + this.platformNode.height / 2);
         this.stickNode.height = 0;
         this.stickNode.angle = 0;
@@ -452,6 +452,7 @@ export default class GameplayController extends cc.Component {
     onPlayerCrashInToPlatform() {
         console.log("onPlayerCrashInToPlatform");
         this.playerNode.getComponent(Player).fall();
+        this.audioController.playSound(this.audioController.fallSound);
         this.setState(GameStates.End);
         this.scheduleOnce(() => {
             this.endGame();
@@ -512,8 +513,8 @@ export default class GameplayController extends cc.Component {
         this.spawnNextPlatform();
 
         let platformAppearanceTime = this.moveDistance / (200 * 3);
-        cc.tween(this.rootNode)
-            .to(platformAppearanceTime, { position: cc.v3(this.rootNode.x - this.moveDistance) })
+        cc.tween(this.node)
+            .to(platformAppearanceTime, { position: cc.v3(this.node.x - this.moveDistance) })
             .start();
     }
 

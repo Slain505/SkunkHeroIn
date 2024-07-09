@@ -48,7 +48,7 @@ export default class Platform extends cc.Component {
     bonusPlatformShowed: boolean = true;
 
     onLoad() {
-        
+        this.bonusPlatform.zIndex = 997;
     }
 
     initPlatform(positionX: number, initialWidth: number = 0, bonusPlatformVisible: boolean = true) {

@@ -184,7 +184,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "d7T9tKDXRB4ZiEXvPonKwV",
+    "fileId": "a5jFv2C9ZLSb8EHLATR+qw",
     "sync": false
   },
   {
@@ -232,7 +232,7 @@
     "bonusPlatform": {
       "__id__": 2
     },
-    "bonusPlatformMinWidth": 10,
+    "bonusPlatformMinWidth": 20,
     "bonusPlatformMaxWidth": 50,
     "bonusPlatformShowed": true,
     "_id": ""
