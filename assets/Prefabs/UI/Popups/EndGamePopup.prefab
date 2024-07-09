@@ -355,7 +355,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "319f1aa0-d96d-4c5f-85e3-b1bf953e3c99"
+      "__uuid__": "0149a36d-ae26-452b-8db9-b142f3723066"
     },
     "_type": 0,
     "_sizeMode": 0,
@@ -369,7 +369,7 @@
     "_fillRange": 0,
     "_isTrimmedMode": true,
     "_atlas": {
-      "__uuid__": "dc059437-b2be-4637-be68-7cd0f3329b4f"
+      "__uuid__": "af6fc3b1-9ee0-4dd1-af73-aefc104493e3"
     },
     "_id": ""
   },
@@ -978,7 +978,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "81366cf8-6c05-480b-95a9-ac49838be4be"
+      "__uuid__": "7ccc476e-a06b-4b47-8b02-bd3a5d07671f"
     },
     "_type": 1,
     "_sizeMode": 0,
@@ -992,7 +992,7 @@
     "_fillRange": 0,
     "_isTrimmedMode": true,
     "_atlas": {
-      "__uuid__": "dc059437-b2be-4637-be68-7cd0f3329b4f"
+      "__uuid__": "af6fc3b1-9ee0-4dd1-af73-aefc104493e3"
     },
     "_id": ""
   },
@@ -1093,9 +1093,7 @@
       "b": 120,
       "a": 200
     },
-    "_N$normalSprite": {
-      "__uuid__": "81366cf8-6c05-480b-95a9-ac49838be4be"
-    },
+    "_N$normalSprite": null,
     "_N$pressedSprite": {
       "__uuid__": "e9ec654c-97a2-4787-9325-e6a10375219a"
     },
@@ -1129,7 +1127,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "StartScreenButton",
+    "_name": "HomeScreenButton",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
@@ -1278,7 +1276,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "4b52558b-ccdd-4c44-9439-3500fdb54e51"
+      "__uuid__": "8f34e560-b7e8-4d31-96e3-3a0b0e7a6225"
     },
     "_type": 1,
     "_sizeMode": 0,
@@ -1292,7 +1290,7 @@
     "_fillRange": 0,
     "_isTrimmedMode": true,
     "_atlas": {
-      "__uuid__": "dc059437-b2be-4637-be68-7cd0f3329b4f"
+      "__uuid__": "af6fc3b1-9ee0-4dd1-af73-aefc104493e3"
     },
     "_id": ""
   },
@@ -1393,9 +1391,7 @@
       "b": 120,
       "a": 200
     },
-    "_N$normalSprite": {
-      "__uuid__": "81366cf8-6c05-480b-95a9-ac49838be4be"
-    },
+    "_N$normalSprite": null,
     "_N$pressedSprite": {
       "__uuid__": "e9ec654c-97a2-4787-9325-e6a10375219a"
     },
