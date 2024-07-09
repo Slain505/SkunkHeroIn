@@ -1,3 +1,4 @@
+import { GameStates } from './States/GameStates';
 import { PlayerStates } from './States/PlayerStates';
 
 const { ccclass, property } = cc._decorator;
@@ -10,11 +11,10 @@ export default class Player extends cc.Component {
     private playerState: PlayerStates = PlayerStates.Idle;
     private isFlipped: boolean = false;
     private originalY: number = 0;
+
     onLoad() {
         this.originalY = this.node.position.y;
         this.setState(PlayerStates.Idle);
-
-
     }
 
     setState(state: PlayerStates) {
@@ -45,11 +45,25 @@ export default class Player extends cc.Component {
     }
 
     onCollisionEnter(other: cc.Collider, self: cc.Collider) {
-        if(other.node.group === 'Bonus') {
+        if (other.node.group === 'Bonus') {
             cc.log('Player collided with bonus item');
-            other.node.destroy();
+            const gameState = cc.find('Canvas').getComponent('GameplayController').GameState;
+            if (gameState === GameStates.Running || gameState === GameStates.Idle) {
+                other.node.destroy();
+                const skuCounterNode = cc.find('Canvas/UI/SkuCounter');
+                if (skuCounterNode) {
+                    const skuCounter = skuCounterNode.getComponent('SkuCounter');
+                    if (skuCounter) {
+                        skuCounter.increaseSkuCount('Bonus');
+                    } else {
+                        cc.error('SkuCounter component not found on SkuCounter node');
+                    }
+                } else {
+                    cc.error('SkuCounter node not found in the scene');
+                }
+            }
         }
-        if(other.node.group === 'Platform') {
+        if (other.node.group === 'Platform') {
             cc.log('Player collided with platform, failed');
             this.playerState = PlayerStates.Crash;
         }

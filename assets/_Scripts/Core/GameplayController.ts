@@ -257,6 +257,62 @@ export default class GameplayController extends cc.Component {
         }
     }
 
+    onTouchEnd() {
+        console.log("onTouchEnd");
+
+        if (this.GameState === GameStates.Running && this.playerNode) {
+            this.playerNode.getComponent(Player).flipPlayer();
+            return;
+        }
+
+        if (this.GameState !== GameStates.Touching || !this.stickNode) {
+            return;
+        }
+
+        this.stickComponent = this.stickNode.getComponent(Stick);
+
+        if (this.stickComponent) {
+            this.stickComponent.stopStickGrowth();
+            this.playerNode.getComponent(Player).setState(PlayerStates.HitStick);
+            this.stickComponent.stickFall();
+            this.audioController.stopStickGrowSound();
+            this.audioController.playSound(this.audioController.stickHitSound);
+            this.setState(GameStates.End);
+
+            this.scheduleOnce(this.checkResult.bind(this), this.stickComponent.angleTime);
+        } else {
+            console.error("Stick component is missing");
+        }
+    }
+
+    saveSkuCount() {
+        const skuCounterNode = cc.find('Canvas/UI/SkuCounter');
+        if (skuCounterNode) {
+            const skuCounter = skuCounterNode.getComponent('SkuCounter');
+            if (skuCounter) {
+                skuCounter.saveSkuCount();
+            } else {
+                cc.error('SkuCounter component not found on SkuCounter node');
+            }
+        } else {
+            cc.error('SkuCounter node not found in the scene');
+        }
+    }
+
+    resetSkuCount() {
+        const skuCounterNode = cc.find('Canvas/UI/SkuCounter');
+        if (skuCounterNode) {
+            const skuCounter = skuCounterNode.getComponent('SkuCounter');
+            if (skuCounter) {
+                skuCounter.resetSkuCount();
+            } else {
+                cc.error('SkuCounter component not found on SkuCounter node');
+            }
+        } else {
+            cc.error('SkuCounter node not found in the scene');
+        }
+    }
+
     initTouchEvents() {
         console.log("initTouchEvents");
         this.node.on(cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
@@ -284,34 +340,6 @@ export default class GameplayController extends cc.Component {
             this.stickComponent.startStickGrowth();
             this.playerNode.getComponent(Player).setState(PlayerStates.StickGrow);
             this.audioController.playStickGrowSound();
-        } else {
-            console.error("Stick component is missing");
-        }
-    }
-
-    onTouchEnd() {
-        console.log("onTouchEnd");
-
-        if (this.GameState === GameStates.Running && this.playerNode) {
-            this.playerNode.getComponent(Player).flipPlayer();
-            return;
-        }
-
-        if (this.GameState !== GameStates.Touching || !this.stickNode) {
-            return;
-        }
-
-        this.stickComponent = this.stickNode.getComponent(Stick);
-
-        if (this.stickComponent) {
-            this.stickComponent.stopStickGrowth();
-            this.playerNode.getComponent(Player).setState(PlayerStates.HitStick);
-            this.stickComponent.stickFall();
-            this.audioController.stopStickGrowSound();
-            this.audioController.playSound(this.audioController.stickHitSound);
-            this.setState(GameStates.End);
-
-            this.scheduleOnce(this.checkResult.bind(this), this.stickComponent.angleTime);
         } else {
             console.error("Stick component is missing");
         }
@@ -355,6 +383,7 @@ export default class GameplayController extends cc.Component {
 
         this.moveTo(nextPlatformEdge, moveTime, () => {
             this.scheduleOnce(() => {
+                this.saveSkuCount();
                 this.resetPlatformsAndPlayer();
                 this.instantiateNextPlatform();
                 this.scoreController.increaseScore();
@@ -416,6 +445,8 @@ export default class GameplayController extends cc.Component {
                 this.endGame();
             }, 1);
         });
+
+        this.resetSkuCount();
     }
 
     onPlayerCrashInToPlatform() {
@@ -425,6 +456,8 @@ export default class GameplayController extends cc.Component {
         this.scheduleOnce(() => {
             this.endGame();
         }, 1);
+
+        this.resetSkuCount();
     }
 
     endGame() {
