@@ -116,8 +116,8 @@
       "__id__": 1
     },
     "_enabled": true,
-    "stickGrowthRate": 200,
-    "angleTime": 0.5,
+    "stickGrowthRate": 400,
+    "angleTime": 0.25,
     "_id": ""
   },
   {

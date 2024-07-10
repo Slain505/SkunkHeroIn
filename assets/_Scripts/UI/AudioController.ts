@@ -4,11 +4,7 @@ const { ccclass, property } = cc._decorator;
 export default class AudioController extends cc.Component {
     private static instance: AudioController = null;
 
-    @property({
-        type: cc.AudioClip,
-        displayName: 'Background Music',
-        tooltip: 'Audio clip for background music'
-    })
+    @property({ type: cc.AudioClip, displayName: 'Background Music', tooltip: 'Audio clip for background music' })
     backgroundMusic: cc.AudioClip = null;
 
     @property(cc.AudioClip)
@@ -25,6 +21,9 @@ export default class AudioController extends cc.Component {
 
     @property(cc.AudioClip)
     bonusSound: cc.AudioClip = null;
+
+    @property(cc.AudioClip)
+    skuCollectSound: cc.AudioClip = null;
 
     @property(cc.AudioClip)
     platformSound: cc.AudioClip = null;
@@ -46,6 +45,9 @@ export default class AudioController extends cc.Component {
         }
     }
 
+    /**
+     * Plays the background music.
+     */
     playBackgroundMusic() {
         if (!this.IsMuted && this.musicId === -1 && this.backgroundMusic) {
             console.log("Playing background music:", this.backgroundMusic);
@@ -53,6 +55,9 @@ export default class AudioController extends cc.Component {
         }
     }
 
+    /**
+     * Stops the background music.
+     */
     stopBackgroundMusic() {
         if (this.musicId !== -1) {
             cc.audioEngine.stopMusic();
@@ -60,18 +65,28 @@ export default class AudioController extends cc.Component {
         }
     }
 
+    /**
+     * Plays a sound effect.
+     * @param {cc.AudioClip} sound - The audio clip to play.
+     */
     playSound(sound: cc.AudioClip) {
         if (!this.IsMuted && sound) {
             cc.audioEngine.playEffect(sound, false);
         }
     }
 
+    /**
+     * Plays the stick growing sound.
+     */
     playStickGrowSound() {
         if (!this.IsMuted && this.stickGrowSound && this.stickGrowSoundId === -1) {
             this.stickGrowSoundId = cc.audioEngine.playEffect(this.stickGrowSound, true);
         }
     }
 
+    /**
+     * Stops the stick growing sound.
+     */
     stopStickGrowSound() {
         if (this.stickGrowSoundId !== -1) {
             cc.audioEngine.stopEffect(this.stickGrowSoundId);
@@ -79,18 +94,27 @@ export default class AudioController extends cc.Component {
         }
     }
 
+    /**
+     * Mutes all sounds.
+     */
     mute() {
         this.IsMuted = true;
         cc.audioEngine.setMusicVolume(0);
         cc.audioEngine.setEffectsVolume(0);
     }
 
+    /**
+     * Unmutes all sounds.
+     */
     unmute() {
         this.IsMuted = false;
         cc.audioEngine.setMusicVolume(1);
         cc.audioEngine.setEffectsVolume(1);
     }
 
+    /**
+     * Toggles sound on or off.
+     */
     toggleSound() {
         if (this.IsMuted) {
             this.unmute();
@@ -99,6 +123,10 @@ export default class AudioController extends cc.Component {
         }
     }
 
+    /**
+     * Returns the instance of the AudioController.
+     * @returns {AudioController} - The AudioController instance.
+     */
     static getInstance(): AudioController {
         if (!AudioController.instance) {
             console.error("AudioManager instance is null.");

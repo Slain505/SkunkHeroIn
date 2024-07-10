@@ -10,13 +10,13 @@ export default class Player extends cc.Component {
 
     private playerState: PlayerStates = PlayerStates.Idle;
     private isFlipped: boolean = false;
-    private originalY: number = 0;
 
+    // Called when the script is loaded
     onLoad() {
-        this.originalY = this.node.position.y;
         this.setState(PlayerStates.Idle);
     }
 
+    // Set the player's state and play the corresponding animation
     setState(state: PlayerStates) {
         if (this.playerState !== state) {
             this.playerState = state;
@@ -25,10 +25,12 @@ export default class Player extends cc.Component {
         }
     }
 
-    getState() {
+    // Get the current state of the player
+    getState(): PlayerStates {
         return this.playerState;
     }
 
+    // Flip the player vertically
     flipPlayer() {
         this.isFlipped = !this.isFlipped;
         this.node.scaleY = this.isFlipped ? -1 : 1;
@@ -37,14 +39,16 @@ export default class Player extends cc.Component {
         cc.log('Player flipped:', this.isFlipped, 'New Position Y:', newY);
     }
 
+    // Make the player fall off the screen
     fall() {
         this.setState(PlayerStates.Falling);
         cc.tween(this.node)
-            .to(0.5, { position: cc.v3(this.node.x, -1000) })
+            .to(0.5, { position: cc.v3(this.node.x, -1200) })
             .start();
     }
-  
-onCollisionEnter(other: cc.Collider, self: cc.Collider) {
+
+    // Handle collisions with other objects
+    onCollisionEnter(other: cc.Collider, self: cc.Collider) {
         if (other.node.group === 'Bonus') {
             cc.log('Player collided with bonus item');
             const gameState = cc.find('Canvas').getComponent('GameplayController').GameState;
@@ -55,6 +59,7 @@ onCollisionEnter(other: cc.Collider, self: cc.Collider) {
                     const skuCounter = skuCounterNode.getComponent('SkuCounter');
                     if (skuCounter) {
                         skuCounter.increaseSkuCount('Bonus');
+                        this.node.emit('playCollectBonus');
                     } else {
                         cc.error('SkuCounter component not found on SkuCounter node');
                     }

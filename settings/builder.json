@@ -1,20 +1,20 @@
 {
   "title": "SkunkHeroIn",
   "packageName": "org.cocos2d.demo",
-  "startScene": "c0fd9b54-5763-4fc1-b764-e3ff3e42c13e",
+  "startScene": "6b0c7b83-b465-4de8-b363-d4edb39461c1",
   "excludeScenes": [],
   "orientation": {
-    "landscapeRight": true,
-    "landscapeLeft": true,
-    "portrait": false,
+    "landscapeRight": false,
+    "landscapeLeft": false,
+    "portrait": true,
     "upsideDown": false
   },
-  "webOrientation": "auto",
+  "webOrientation": "portrait",
   "inlineSpriteFrames": true,
   "inlineSpriteFrames_native": true,
   "mainCompressionType": "default",
   "mainIsRemote": false,
-  "optimizeHotUpdate": false,
+  "optimizeHotUpdate": true,
   "md5Cache": true,
   "nativeMd5Cache": true,
   "encryptJs": true,
@@ -22,7 +22,7 @@
   "zipCompressJs": true,
   "fb-instant-games": {},
   "android": {
-    "packageName": "org.cocos2d.demo",
+    "packageName": "org.slain505.skunkheroin",
     "REMOTE_SERVER_ROOT": ""
   },
   "ios": {
@@ -43,7 +43,7 @@
   },
   "android-instant": {
     "packageName": "org.cocos2d.demo",
-    "REMOTE_SERVER_ROOT": "",
+    "REMOTE_SERVER_ROOT": "http://192.168.0.228:7456/preview-android-instant/",
     "pathPattern": "",
     "scheme": "https",
     "host": "",

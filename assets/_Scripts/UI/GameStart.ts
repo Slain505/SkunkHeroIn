@@ -6,8 +6,8 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class GameStart extends cc.Component {
 
-    @property(cc.Button)
-    gameStartButton: cc.Button = null;
+    @property(cc.Node)
+    gameStartButton: cc.Node = null;
 
     @property(cc.Node)
     playerStub: cc.Node = null;
@@ -34,7 +34,7 @@ export default class GameStart extends cc.Component {
         cc.director.preloadScene("GameScene");
 
         if (this.gameStartButton) {
-            this.gameStartButton.node.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
+            this.gameStartButton.on(cc.Node.EventType.TOUCH_END, this.onTouchEnd, this);
         }
 
         if (this.soundToggleButton) {
@@ -48,8 +48,12 @@ export default class GameStart extends cc.Component {
         this.updateSoundButtonSprite();
     }
 
+    /**
+     * Handler for the game start button touch event.
+     */
     onTouchEnd() {
         this.soundToggleButton.active = false;
+        this.gameStartButton.active = false;
 
         this.audioController.playSound(this.audioController.buttonClickSound);
         const targetPlatformPosition = cc.v2(-cc.winSize.width / 2, this.platformStub.y);
@@ -66,11 +70,17 @@ export default class GameStart extends cc.Component {
         }, this.animationTime);
     }
 
+    /**
+     * Handler for the sound toggle button touch event.
+     */
     onSoundToggleButtonClicked() {
         this.audioController.toggleSound();
         this.updateSoundButtonSprite();
     }
 
+    /**
+     * Updates the sprite of the sound toggle button based on the sound state.
+     */
     updateSoundButtonSprite() {
         this.audioController.playSound(this.audioController.buttonClickSound);
         const sprite = this.soundToggleButton.getComponent(cc.Sprite);

@@ -17,7 +17,7 @@
         "__id__": 2
       },
       {
-        "__id__": 45
+        "__id__": 46
       }
     ],
     "_active": false,
@@ -94,6 +94,9 @@
       },
       {
         "__id__": 44
+      },
+      {
+        "__id__": 45
       }
     ],
     "_prefab": null,
@@ -152,7 +155,7 @@
       "__id__": 2
     },
     "_children": [],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 4
@@ -312,9 +315,9 @@
     "_clearFlags": 7,
     "_backgroundColor": {
       "__type__": "cc.Color",
-      "r": 132,
-      "g": 194,
-      "b": 209,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
     "_depth": -1,
@@ -373,8 +376,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 0,
-      "height": 0
+      "width": 300,
+      "height": 200
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1850,7 +1853,7 @@
       "height": 1920
     },
     "_fitWidth": false,
-    "_fitHeight": true,
+    "_fitHeight": false,
     "_id": "59Cd0ovbdF4byw5sbjJDx7"
   },
   {
@@ -1861,7 +1864,7 @@
       "__id__": 2
     },
     "_enabled": true,
-    "alignMode": 1,
+    "alignMode": 2,
     "_target": null,
     "_alignFlags": 45,
     "_left": 0,
@@ -1889,7 +1892,7 @@
     },
     "_enabled": true,
     "gameStartButton": {
-      "__id__": 28
+      "__id__": 22
     },
     "playerStub": {
       "__id__": 33
@@ -1912,6 +1915,38 @@
     "_id": "d7F8RQgs1DZKZo4hvYEjYV"
   },
   {
+    "__type__": "cc.Sprite",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 2
+    },
+    "_enabled": true,
+    "_materials": [
+      {
+        "__uuid__": "eca5d2f2-8ef6-41c2-bbe6-f9c79d09c432"
+      }
+    ],
+    "_srcBlendFactor": 770,
+    "_dstBlendFactor": 771,
+    "_spriteFrame": {
+      "__uuid__": "c5751691-0643-4873-b7dd-b7c71dd51992"
+    },
+    "_type": 0,
+    "_sizeMode": 1,
+    "_fillType": 0,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_atlas": null,
+    "_id": "23yuGiYS9Hi4W1spNXUNed"
+  },
+  {
     "__type__": "cc.Node",
     "_name": "AudioController",
     "_objFlags": 0,
@@ -1922,7 +1957,7 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 46
+        "__id__": 47
       }
     ],
     "_prefab": null,
@@ -1978,7 +2013,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 45
+      "__id__": 46
     },
     "_enabled": true,
     "backgroundMusic": {
@@ -1997,6 +2032,9 @@
       "__uuid__": "d2f35463-08a8-450f-9e92-2eea3699a7f2"
     },
     "bonusSound": {
+      "__uuid__": "529a88db-1dc1-49f1-b111-4f8fc31d922d"
+    },
+    "skuCollectSound": {
       "__uuid__": "529a88db-1dc1-49f1-b111-4f8fc31d922d"
     },
     "platformSound": {
