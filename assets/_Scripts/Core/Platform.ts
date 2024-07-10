@@ -82,7 +82,10 @@ export default class Platform extends cc.Component {
         console.log("Bonus platform left", bonusPlatformLeft, "right", bonusPlatformRight, "stick right", stickRightX);
         if (this.bonusPlatformShowed && stickRightX > bonusPlatformLeft && stickRightX < bonusPlatformRight) {
             scoreController.increaseScore(true);
-            audioController.playSound(audioController.bonusSound);
+            
+            if(!audioController.IsMuted)
+                audioController.playSound(audioController.bonusSound);
+            
             console.log("Bonus platform touched");
             return true;
         }

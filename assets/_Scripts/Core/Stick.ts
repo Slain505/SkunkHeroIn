@@ -1,4 +1,3 @@
-import { GameStates } from './States/GameStates';
 import GameplayController from './GameplayController';
 const { ccclass, property } = cc._decorator;
 

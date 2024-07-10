@@ -34,7 +34,7 @@ export default class AudioController extends cc.Component {
 
     private musicId: number = -1;
     private stickGrowSoundId: number = -1;
-    public isMuted: boolean = false;
+    public IsMuted: boolean = false;
 
     onLoad() {
         if (AudioController.instance === null) {
@@ -47,7 +47,7 @@ export default class AudioController extends cc.Component {
     }
 
     playBackgroundMusic() {
-        if (!this.isMuted && this.musicId === -1 && this.backgroundMusic) {
+        if (!this.IsMuted && this.musicId === -1 && this.backgroundMusic) {
             console.log("Playing background music:", this.backgroundMusic);
             this.musicId = cc.audioEngine.playMusic(this.backgroundMusic, true);
         }
@@ -61,13 +61,13 @@ export default class AudioController extends cc.Component {
     }
 
     playSound(sound: cc.AudioClip) {
-        if (!this.isMuted && sound) {
+        if (!this.IsMuted && sound) {
             cc.audioEngine.playEffect(sound, false);
         }
     }
 
     playStickGrowSound() {
-        if (!this.isMuted && this.stickGrowSound && this.stickGrowSoundId === -1) {
+        if (!this.IsMuted && this.stickGrowSound && this.stickGrowSoundId === -1) {
             this.stickGrowSoundId = cc.audioEngine.playEffect(this.stickGrowSound, true);
         }
     }
@@ -80,19 +80,19 @@ export default class AudioController extends cc.Component {
     }
 
     mute() {
-        this.isMuted = true;
+        this.IsMuted = true;
         cc.audioEngine.setMusicVolume(0);
         cc.audioEngine.setEffectsVolume(0);
     }
 
     unmute() {
-        this.isMuted = false;
+        this.IsMuted = false;
         cc.audioEngine.setMusicVolume(1);
         cc.audioEngine.setEffectsVolume(1);
     }
 
     toggleSound() {
-        if (this.isMuted) {
+        if (this.IsMuted) {
             this.unmute();
         } else {
             this.mute();

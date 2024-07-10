@@ -56,7 +56,8 @@ export default class EndGamePopup extends cc.Component {
     }
 
     onRestartTouched() {
-        this.audioController.playSound(this.audioController.buttonClickSound);
+        if(!this.audioController.IsMuted)
+            this.audioController.playSound(this.audioController.buttonClickSound);
 
         this.node.active = false;
 
@@ -65,7 +66,9 @@ export default class EndGamePopup extends cc.Component {
     }
     
     onStartScreenTouched() {
-        this.audioController.playSound(this.audioController.buttonClickSound);
+        if(!this.audioController.IsMuted)
+            this.audioController.playSound(this.audioController.buttonClickSound);
+        
         this.transitionNode.active = true;
         this.transitionNode.opacity = 0;
         this.transitionNode.runAction(cc.sequence(
@@ -96,7 +99,5 @@ export default class EndGamePopup extends cc.Component {
     
     onGameEnd() {
         this.node.active = true;
-        //this.node.getChildByName('Score').getComponent(cc.Label).string = score.toString();
-        //this.node.getChildByName('BestScore').getComponent(cc.Label).string = bestScore.toString();
     }
 }

@@ -74,7 +74,7 @@ export default class GameStart extends cc.Component {
     updateSoundButtonSprite() {
         this.audioController.playSound(this.audioController.buttonClickSound);
         const sprite = this.soundToggleButton.getComponent(cc.Sprite);
-        if (this.audioController.isMuted) {
+        if (this.audioController.IsMuted) {
             sprite.spriteFrame = this.soundOffSprite;
         } else {
             sprite.spriteFrame = this.soundOnSprite;

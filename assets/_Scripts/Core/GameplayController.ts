@@ -275,8 +275,12 @@ export default class GameplayController extends cc.Component {
             this.stickComponent.stopStickGrowth();
             this.playerNode.getComponent(Player).setState(PlayerStates.HitStick);
             this.stickComponent.stickFall();
-            this.audioController.stopStickGrowSound();
-            this.audioController.playSound(this.audioController.stickHitSound);
+            
+            if(!this.audioController.IsMuted){                
+                this.audioController.stopStickGrowSound();
+                this.audioController.playSound(this.audioController.stickHitSound);
+            }
+
             this.setState(GameStates.End);
 
             this.scheduleOnce(this.checkResult.bind(this), this.stickComponent.angleTime);
@@ -339,7 +343,10 @@ export default class GameplayController extends cc.Component {
         if (this.stickComponent) {
             this.stickComponent.startStickGrowth();
             this.playerNode.getComponent(Player).setState(PlayerStates.StickGrow);
-            this.audioController.playStickGrowSound();
+
+            if(!this.audioController.IsMuted)
+                this.audioController.playStickGrowSound();
+        
         } else {
             console.error("Stick component is missing");
         }
@@ -365,7 +372,8 @@ export default class GameplayController extends cc.Component {
         const nextPlatformComp = this.nextPlatformNode.getComponent(Platform);
 
         if (nextPlatformComp && nextPlatformComp.isStickTouching(stickRightX, this.audioController)) {
-            this.audioController.playSound(this.audioController.stickFallSound);
+            if(!this.audioController.IsMuted)
+                this.audioController.playSound(this.audioController.stickFallSound);
         
             this.onStickTouchPlatform();
             
@@ -410,7 +418,8 @@ export default class GameplayController extends cc.Component {
             .to(moveTime, { x: moveAmount })
             .start();
             
-        this.audioController.playSound(this.audioController.platformSound);
+        if(!this.audioController.IsMuted)
+            this.audioController.playSound(this.audioController.platformSound);
         // Remove the old platform
         this.platformNode.destroy();
         this.platformNode = null;
@@ -439,7 +448,10 @@ export default class GameplayController extends cc.Component {
 
         this.moveTo(this.stickNode.x + this.stickNode.height, moveTime, () => {
             this.playerNode.getComponent(Player).fall();
-            this.audioController.playSound(this.audioController.fallSound);
+            
+            if(!this.audioController.IsMuted)
+                this.audioController.playSound(this.audioController.fallSound);
+            
             this.stickComponent.stickOnFail();
             this.scheduleOnce(() => {
                 this.endGame();
@@ -452,7 +464,10 @@ export default class GameplayController extends cc.Component {
     onPlayerCrashInToPlatform() {
         console.log("onPlayerCrashInToPlatform");
         this.playerNode.getComponent(Player).fall();
-        this.audioController.playSound(this.audioController.fallSound);
+        
+        if(!this.audioController.IsMuted)
+            this.audioController.playSound(this.audioController.fallSound);
+        
         this.setState(GameStates.End);
         this.scheduleOnce(() => {
             this.endGame();
