@@ -1,6 +1,6 @@
 # Skunk Hero In
 ## Overview
-"Skunk Hero In" is a game developed using Cocos Creator. The project focuses on providing a clean, maintainable, and scalable code architecture inspired by Unity's development principles.
+"Skunk Hero In" is a game clone of "Stick Hero" developed using Cocos Creator.
 
 ## Features
 
