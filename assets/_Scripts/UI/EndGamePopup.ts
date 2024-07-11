@@ -63,7 +63,7 @@ export default class EndGamePopup extends cc.Component {
         this.transitionNode.runAction(cc.sequence(
             cc.fadeIn(0.5),
             cc.callFunc(() => {
-                cc.director.loadScene('Splash', () => {
+                cc.director.loadScene('StartScene', () => {
                     const transitionNode = cc.find('Canvas/TransitionBG');
                     if (transitionNode) {
                         transitionNode.opacity = 255;
