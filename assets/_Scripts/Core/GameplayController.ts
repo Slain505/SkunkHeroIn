@@ -215,8 +215,9 @@ export default class GameplayController extends cc.Component {
             const newPositionX = cc.misc.lerp(this.moveDetails.startX, this.moveDetails.targetX, progress);
             this.playerNode.setPosition(newPositionX, this.playerNode.position.y);
 
-            if (progress >= 1) {
-                this.setState(GameStates.Idle, 'update');
+            if (progress >= 1 ) {
+                // Set the player to End state as transition state
+                this.setState(GameStates.End, 'update');
                 this.moveDetails.targetX = 0;
                 if (this.moveDetails.callback) {
                     this.moveDetails.callback();
@@ -452,7 +453,8 @@ export default class GameplayController extends cc.Component {
         console.log("onPlayerCrashInToPlatform");
         this.playerNode.getComponent(Player).fall();
 
-        if (!this.audioController.IsMuted)
+        // Add check for GameState to prevent playing the sound if the game already ended
+        if (!this.audioController.IsMuted && this.GameState !== GameStates.End) 
             this.audioController.playSound(this.audioController.fallSound);
 
         this.setState(GameStates.End);
@@ -528,6 +530,8 @@ export default class GameplayController extends cc.Component {
     setState(state: GameStates, methodName: string = '') {
         if (this.GameState !== state) {
             this.GameState = state;
+
+            // Log the game state and method name for debugging
             cc.log('Game state:', state, 'Method:', methodName);
         }
     }
