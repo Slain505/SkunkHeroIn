@@ -8,6 +8,7 @@ import AudioController from "../UI/AudioController";
 import { PlayerStates } from "./States/PlayerStates";
 import BonusItem from "./BonusItem";
 import SkuCounter from "../UI/SkuCounter";
+import { log } from '../../../creator';
 
 const { ccclass, property } = cc._decorator;
 
@@ -94,6 +95,7 @@ export default class GameplayController extends cc.Component {
         const initialPlayerX = initialPlatformX + this.platformPrefabWidth / 2 - this.playerPrefabWidth / 1.2;
 
         this.platformNode = this.createPlatform(initialPlatformX, this.platformPrefabWidth, false);
+        this.platformNode.getComponent(cc.BoxCollider).destroy(); // Remove the collider from the initial platform to prevent player from colliding with it
 
         this.futurePlatformPosition = this.platformNode.x;
 
@@ -208,8 +210,9 @@ export default class GameplayController extends cc.Component {
         if (this.GameState === GameStates.Touching && this.stickNode) {
             this.stickNode.getComponent(Stick).growStick(deltaTime);
         }
-
-        if (this.GameState === GameStates.Running || this.GameState === GameStates.Coming && this.moveDetails.targetX !== 0) {
+        
+        if (this.GameState === GameStates.Running || this.GameState === GameStates.Coming 
+                && this.moveDetails.targetX !== 0) {
             this.moveDetails.elapsedTime += deltaTime;
             let progress = Math.min(this.moveDetails.elapsedTime / this.moveDetails.duration, 1);
             const newPositionX = cc.misc.lerp(this.moveDetails.startX, this.moveDetails.targetX, progress);
@@ -238,7 +241,10 @@ export default class GameplayController extends cc.Component {
     onTouchEnd() {
         console.log("onTouchEnd");
 
-        if (this.GameState === GameStates.Running && this.playerNode) {
+        //Claculate if the player has passed the current platform to prevent flipping when the player is on the platform
+        let playerPassCurrentPlatform = this.playerNode.x >= this.platformNode.x + this.platformNode.width / 2;
+        
+        if (this.GameState === GameStates.Running && this.playerNode && playerPassCurrentPlatform) {
             this.playerNode.getComponent(Player).flipPlayer();
             return;
         }
@@ -405,6 +411,7 @@ export default class GameplayController extends cc.Component {
         this.platformNode.destroy();
         this.platformNode = null;
         this.platformNode = this.nextPlatformNode;
+        this.platformNode.getComponent(cc.BoxCollider).destroy(); // Remove the collider from the initial platform to prevent player from colliding with it
 
         const platformComp = this.platformNode.getComponent(Platform);
         if (platformComp) {
@@ -480,39 +487,14 @@ export default class GameplayController extends cc.Component {
         this.endGamePopupComponent.hidePopup();
         this.scoreNode.active = true;
         this.scoreController.resetScore();
-        this.clearGameObjects();
+        this.dispose();
         this.initializeGameInstance();
     }
 
     // Clear game objects
-    clearGameObjects() {
-        if (this.platformNode) {
-            this.platformNode.destroy();
-            this.platformNode = null;
-        }
-        if (this.nextPlatformNode) {
-            this.nextPlatformNode.destroy();
-            this.nextPlatformNode = null;
-        }
-
-        if (this.stickNode) {
-            this.stickNode.destroy();
-            this.stickNode = null;
-        }
-        if (this.oldStickNode) { // Destroy the old stick node if it exists
-            this.oldStickNode.destroy();
-            this.oldStickNode = null;
-        }
-
-        if (this.playerNode) {
-            this.playerNode.destroy();
-            this.playerNode = null;
-        }
-
-        if (this.bonusItemNode) {
-            this.bonusItemNode.destroy();
-            this.bonusItemNode = null;
-        }
+    dispose() {
+        console.log("dispose");
+        this.rootNode.removeAllChildren();
     }
 
     // Instantiate the next platform

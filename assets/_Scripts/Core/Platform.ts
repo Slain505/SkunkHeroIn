@@ -33,7 +33,7 @@ export default class Platform extends cc.Component {
         this.node.width = initialWidth > 0 ? initialWidth : this.platformMinWidth + Math.random() * (this.platformMaxWidth - this.platformMinWidth);
 
         const collider = this.node.addComponent(cc.BoxCollider);
-        collider.size = new cc.Size(this.node.width + 25, this.node.height - 10);
+        collider.size = new cc.Size(this.node.width, this.node.height - 10);
         collider.offset = new cc.Vec2(0, -5);
 
         let bonusPlatformProportion = (this.node.width - this.platformMinWidth) / (this.platformMaxWidth - this.platformMinWidth);

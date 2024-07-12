@@ -20,7 +20,7 @@ export enum GameStates {
     Coming = 'Coming',
 
     /**
-     * Game has ended.
+     * Transition state.
      */
     End = 'End'
 }
